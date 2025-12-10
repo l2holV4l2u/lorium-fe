@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider                  = "zod-prisma-types"
+  createRelationValuesTypes = "true"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum Role {
+  HOST
+  REGISTRANT
+}
+
+model User {
+  id          String            @id @default(uuid())
+  email       String            @unique
+  updatedAt   DateTime          @default(now()) @updatedAt
+  role        Role              @default(REGISTRANT)
+  title       String?
+  name        String?
+  profileUrl  String?
+
+  organizer   OrganizerAssign[]
+  res         Res[]
+  venueAssign VenueAssign[]
+  resultData  ResultData[]
+
+  @@index([email])
+}
+
+model Event {
+  id              String            @id @default(uuid())
+  name            String
+  description     String
+  location        String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+  startDate       DateTime
+  endDate         DateTime
+  regist          DateTime
+
+  profileURL      String?
+  price           Int
+  stripeAccountId String?
+  resultUrl       String?
+
+  form            Form?
+  organizer       OrganizerAssign[]
+  res             Res[]
+  ticketConfig    TicketConfig?
+  venueAssign     VenueAssign[]
+  venueNodes      VenueNode[]
+  venueTypes      VenueType[]
+  resultColumns   ResultColumn[]
+
+  @@index([startDate, endDate])
+}
+
+model OrganizerAssign {
+  userId  String
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
+
+  @@id([userId, eventId])
+}
+
+model Form {
+  id      String      @id @default(uuid())
+  eventId String      @unique
+  event   Event       @relation(fields: [eventId], references: [id])
+  fields  FormField[]
+  res     Res[]
+
+  @@index([eventId])
+}
+
+model FormField {
+  id          String     @id @default(uuid())
+  formId      String
+  fieldOrder  Int
+  choices     String[]
+  description String?
+  header      String
+  placeholder String?
+  required    Boolean    @default(false)
+  type        String
+  form        Form       @relation(fields: [formId], references: [id])
+  resFields   ResField[]
+
+  @@index([formId, fieldOrder])
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Res {
+  id            String        @id @default(uuid())
+  eventId       String
+  formId        String
+  userId        String
+  paymentIntent String?       @unique
+  paymentStatus PaymentStatus
+  paymentId     String?       @unique
+  submittedAt   DateTime      @default(now())
+
+  event         Event         @relation(fields: [eventId], references: [id])
+  form          Form          @relation(fields: [formId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
+  resFields     ResField[]
+
+  @@unique([userId, eventId])
+
+  @@index([paymentStatus])
+  @@index([submittedAt])
+}
+
+model ResField {
+  id          String    @id @default(uuid())
+  formFieldId String
+  resId       String
+
+  textField   String?
+  choiceField Int[]
+  fileField   String?
+  dateField   DateTime?
+  selectField Int?
+
+  formField   FormField @relation(fields: [formFieldId], references: [id])
+  formRes     Res       @relation(fields: [resId], references: [id])
+
+  @@index([formFieldId])
+  @@index([resId])
+}
+
+model TicketConfig {
+  id          String   @id @default(uuid())
+  eventId     String   @unique
+  infoLabel   String
+  venueLabel  String
+  infoFields  Json[]
+  venueFields Json[]
+  event       Event    @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+}
+
+model VenueType {
+  id           String      @id @default(uuid())
+  label        String
+  isUnit       Boolean     @default(false)
+  subUnitLabel String?
+  eventId      String
+  venues       VenueNode[]
+  event        Event       @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+}
+
+model VenueNode {
+  id          String        @id @default(uuid())
+  name        String
+  typeId      String
+  eventId     String
+  parentId    String?
+  capacity    Int?
+  assignments VenueAssign[]
+  event       Event         @relation(fields: [eventId], references: [id])
+  parent      VenueNode?    @relation("VenueHierarchy", fields: [parentId], references: [id])
+  children    VenueNode[]   @relation("VenueHierarchy")
+  type        VenueType     @relation(fields: [typeId], references: [id])
+
+  @@index([eventId, typeId])
+}
+
+model VenueAssign {
+  id           String    @id @default(uuid())
+  userId       String
+  eventId      String
+  subUnitIndex Int?
+  venueNodeId  String
+
+  event        Event     @relation(fields: [eventId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
+  venueNode    VenueNode @relation(fields: [venueNodeId], references: [id])
+
+  @@unique([userId, eventId])
+  @@unique([venueNodeId, subUnitIndex])
+
+  @@index([eventId])
+}
+
+model ResultColumn {
+  id           String         @id @default(uuid())
+  label        String
+  order        Int
+  eventId      String
+  fileMap      String?
+  event        Event          @relation(fields: [eventId], references: [id])
+  resultData   ResultData[]
+
+  @@index([eventId])
+}
+
+model ResultData {
+  id             String       @id @default(uuid())
+  userId         String
+  resultColumnId String
+  value          String
+
+  resultColumn   ResultColumn @relation(fields: [resultColumnId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([userId, resultColumnId])
+  @@index([userId])
+}
