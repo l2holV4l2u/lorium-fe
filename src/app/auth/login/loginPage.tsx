@@ -38,14 +38,14 @@ export function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
-      router.push("/dashboard");
+      router.push("/host");
     }
   }, [status, session, router]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", { callbackUrl: "/host" });
     } catch (error) {
       console.error("Google Login Failed:", error);
       setIsLoading(false);
