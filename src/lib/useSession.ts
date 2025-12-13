@@ -28,25 +28,25 @@ export function useHostSession(): [
   (user: HostUser | null) => void
 ] {
   const { data: session, update } = useSession();
-  const [user, setUserState] = useState<HostUser | null>(null);
+  const [host, setHostState] = useState<HostUser | null>(null);
 
   useEffect(() => {
     if (session?.user) {
       const sessionUser = session.user as User;
       if (sessionUser.role === "HOST") {
-        setUserState(sessionUser as HostUser);
+        setHostState(sessionUser as HostUser);
       } else {
-        setUserState(null);
+        setHostState(null);
       }
     }
   }, [session]);
 
-  const setUser = (newUser: HostUser | null) => {
-    setUserState(newUser);
+  const setHost = (newUser: HostUser | null) => {
+    setHostState(newUser);
     update({ user: newUser });
   };
 
-  return [user, setUser];
+  return [host, setHost];
 }
 
 // Registrant-specific session hook
@@ -55,23 +55,25 @@ export function useRegistrantSession(): [
   (user: RegistrantUser | null) => void
 ] {
   const { data: session, update } = useSession();
-  const [user, setUserState] = useState<RegistrantUser | null>(null);
+  const [registrant, setRegistrantState] = useState<RegistrantUser | null>(
+    null
+  );
 
   useEffect(() => {
     if (session?.user) {
       const sessionUser = session.user as User;
       if (sessionUser.role === "REGISTRANT") {
-        setUserState(sessionUser as RegistrantUser);
+        setRegistrantState(sessionUser as RegistrantUser);
       } else {
-        setUserState(null);
+        setRegistrantState(null);
       }
     }
   }, [session]);
 
-  const setUser = (newUser: RegistrantUser | null) => {
-    setUserState(newUser);
+  const setRegistrant = (newUser: RegistrantUser | null) => {
+    setRegistrantState(newUser);
     update({ user: newUser });
   };
 
-  return [user, setUser];
+  return [registrant, setRegistrant];
 }

@@ -14,6 +14,7 @@ declare module "next-auth" {
       role: Role;
       title?: string | null;
       profileUrl?: string | null;
+      hostedEventIds?: string[]; // Add this
     };
   }
 
@@ -33,6 +34,7 @@ declare module "next-auth/jwt" {
     role: Role;
     title?: string | null;
     profileUrl?: string | null;
+    hostedEventIds?: string[]; // Add this
   }
 }
 
@@ -96,6 +98,11 @@ export const { auth, signIn, signOut } = NextAuth({
             role: true,
             title: true,
             profileUrl: true,
+            organizer: {
+              select: {
+                eventId: true,
+              },
+            },
           },
         });
 
@@ -104,6 +111,11 @@ export const { auth, signIn, signOut } = NextAuth({
           token.role = user.role;
           token.title = user.title;
           token.profileUrl = user.profileUrl;
+
+          // Extract event IDs if user is a HOST
+          if (user.role === "HOST") {
+            token.hostedEventIds = user.organizer.map((org) => org.eventId);
+          }
         }
 
         token.accessToken = account.access_token;
@@ -122,6 +134,11 @@ export const { auth, signIn, signOut } = NextAuth({
           profileUrl: true,
           role: true,
           title: true,
+          organizer: {
+            select: {
+              eventId: true,
+            },
+          },
         },
       });
 
@@ -134,6 +151,11 @@ export const { auth, signIn, signOut } = NextAuth({
           role: user.role,
           title: user.title,
           profileUrl: user.profileUrl,
+          // Add hosted event IDs for HOST users
+          hostedEventIds:
+            user.role === "HOST"
+              ? user.organizer.map((org) => org.eventId)
+              : undefined,
         };
       }
 

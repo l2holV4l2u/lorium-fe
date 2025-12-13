@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { Provider } from "@lib/provider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,10 @@ export default function RootLayout({
       <body
         className={`${notoSansThai.className} ${geistSans.variable} ${geistMono.variable} ${notoSansThai.variable} antialiased`}
       >
-        <Provider>{children}</Provider>
+        <Provider>
+          <Toaster richColors position="top-right" />
+          {children}
+        </Provider>
       </body>
     </html>
   );
