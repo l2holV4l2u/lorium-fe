@@ -53,7 +53,7 @@ export default function NewEventClient() {
         <div className="flex items-center justify-center text-gray-700">
           {steps.map((item, index) => (
             <div
-              className="flex flex-col relative w-44 h-[52px] items-center"
+              className="flex flex-col relative w-44 h-13 items-center"
               key={index}
             >
               {nav > index + 1 ? (

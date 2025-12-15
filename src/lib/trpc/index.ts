@@ -1,4 +1,4 @@
-import type { AppRouter } from "@lorium/backend/src/trpc/trpc.router";
 import { createTRPCReact } from "@trpc/react-query";
+import type { AppRouter } from "@lorium/trpc";
 
 export const trpc = createTRPCReact<AppRouter>();

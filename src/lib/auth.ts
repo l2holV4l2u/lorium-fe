@@ -1,8 +1,7 @@
-import NextAuth from "next-auth";
+import { getServerSession, type NextAuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { PrismaClient } from "@prisma/client";
-import type { Role } from "@prisma/client";
+import { trpcServer } from "./trpc/trpc-server";
+import { RoleType } from "@lorium/prisma-zod";
 
 declare module "next-auth" {
   interface Session {
@@ -11,10 +10,10 @@ declare module "next-auth" {
       email: string;
       name?: string | null;
       image?: string | null;
-      role: Role;
+      role: RoleType;
       title?: string | null;
       profileUrl?: string | null;
-      hostedEventIds?: string[]; // Add this
+      hostedEventIds?: string[];
     };
   }
 
@@ -23,7 +22,7 @@ declare module "next-auth" {
     email: string;
     name?: string | null;
     profileUrl?: string | null;
-    role: Role;
+    role: RoleType;
     title?: string | null;
   }
 }
@@ -31,24 +30,14 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: Role;
+    role: RoleType;
     title?: string | null;
     profileUrl?: string | null;
-    hostedEventIds?: string[]; // Add this
+    hostedEventIds?: string[];
   }
 }
 
-// Initialize Prisma with Neon adapter
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not defined");
-}
-
-const adapter = new PrismaNeon({ connectionString });
-const prisma = new PrismaClient({ adapter });
-
-export const { auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -64,58 +53,42 @@ export const { auth, signIn, signOut } = NextAuth({
     async signIn({ user, account }: any) {
       if (account?.provider === "google") {
         try {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
+          console.log("Hi from auth!");
+          await trpcServer.auth.findOrCreateUser.mutate({
+            email: user.email!,
+            name: user.name,
+            image: user.image,
           });
-
-          if (!existingUser) {
-            await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name,
-                profileUrl: user.image,
-                role: "REGISTRANT",
-              },
-            });
-          }
-
           return true;
         } catch (error) {
-          console.error("Error during sign in:", error);
+          console.error("[AUTH] Error during sign in:", error);
           return false;
         }
       }
-
       return true;
     },
 
     async jwt({ token, account }: any) {
       if (account) {
-        const user = await prisma.user.findUnique({
-          where: { email: token.email! },
-          select: {
-            id: true,
-            role: true,
-            title: true,
-            profileUrl: true,
-            organizer: {
-              select: {
-                eventId: true,
-              },
-            },
-          },
-        });
+        try {
+          const user = await trpcServer.auth.getUserByEmail.query({
+            email: token.email!,
+          });
 
-        if (user) {
-          token.id = user.id;
-          token.role = user.role;
-          token.title = user.title;
-          token.profileUrl = user.profileUrl;
+          if (user) {
+            token.id = user.id;
+            token.role = user.role;
+            token.title = user.title;
+            token.profileUrl = user.profileUrl;
 
-          // Extract event IDs if user is a HOST
-          if (user.role === "HOST") {
-            token.hostedEventIds = user.organizer.map((org) => org.eventId);
+            if (user.role === "HOST") {
+              token.hostedEventIds = user.organizer.map(
+                (org: { eventId: string }) => org.eventId
+              );
+            }
           }
+        } catch (error) {
+          console.error("[AUTH] Error in JWT callback:", error);
         }
 
         token.accessToken = account.access_token;
@@ -125,38 +98,28 @@ export const { auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }: any) {
-      const user = await prisma.user.findUnique({
-        where: { id: token.id },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          profileUrl: true,
-          role: true,
-          title: true,
-          organizer: {
-            select: {
-              eventId: true,
-            },
-          },
-        },
-      });
+      try {
+        const user = await trpcServer.auth.getUserById.query({
+          id: token.id,
+        });
 
-      if (user) {
-        session.user = {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.profileUrl,
-          role: user.role,
-          title: user.title,
-          profileUrl: user.profileUrl,
-          // Add hosted event IDs for HOST users
-          hostedEventIds:
-            user.role === "HOST"
-              ? user.organizer.map((org) => org.eventId)
-              : undefined,
-        };
+        if (user) {
+          session.user = {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.profileUrl,
+            role: user.role,
+            title: user.title,
+            profileUrl: user.profileUrl,
+            hostedEventIds:
+              user.role === "HOST"
+                ? user.organizer.map((org: { eventId: string }) => org.eventId)
+                : undefined,
+          };
+        }
+      } catch (error) {
+        console.error("[AUTH] Error in session callback:", error);
       }
 
       return session;
@@ -169,6 +132,8 @@ export const { auth, signIn, signOut } = NextAuth({
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-});
+  debug: true,
+};
 
-export { prisma };
+// Helper to get session in server components
+export const auth = () => getServerSession(authOptions);

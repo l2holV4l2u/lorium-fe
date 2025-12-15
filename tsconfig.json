@@ -20,8 +20,7 @@
       }
     ],
     "paths": {
-      "@*": ["./src/*"],
-      "@zod": ["prisma/generated/zod/index"]
+      "@*": ["./src/*"]
     }
   },
   "include": [
