@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { User } from "@zod";
+import { User } from "@type";
 import { HostUser, RegistrantUser } from "@type/user";
 
 // Base user session hook

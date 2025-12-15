@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { v4 as uuid } from "uuid";
-import { FormField } from "@zod";
+import { FormField } from "@type";
 import { FormEditor } from "./formRender";
 import FormSidebar from "./formSidebar";
 

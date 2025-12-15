@@ -5,7 +5,7 @@ import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { FaPlus, FaXmark } from "react-icons/fa6";
 import { CSS } from "@dnd-kit/utilities";
 import { RiDraggable } from "react-icons/ri";
-import { FormField } from "@zod";
+import { FormField } from "@type";
 import { nonInputFields } from "@lib/utils/const";
 import { Toggle } from "@components/custom/toggle";
 

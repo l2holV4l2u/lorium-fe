@@ -15,7 +15,7 @@ import {
 import { JSX, useEffect, useState } from "react";
 import { FieldTypes } from "@lib/utils/const";
 import ElementProperty from "@components/layout/elementProperty";
-import { FormField } from "@zod";
+import { FormField } from "@type";
 
 const iconProps = { size: 24, strokeWidth: 2, color: "black" };
 const iconMap: Record<string, JSX.Element> = {

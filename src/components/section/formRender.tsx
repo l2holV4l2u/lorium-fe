@@ -8,7 +8,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FormField } from "@zod";
+import { FormField } from "@type";
 import { GripVertical, Trash2 } from "lucide-react";
 
 // Sortable Form Element for Editor mode

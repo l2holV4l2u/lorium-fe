@@ -1,5 +1,5 @@
 import { EventWithForm } from "@type/event";
-import { Event, FormField } from "@zod";
+import { Event, FormField } from "@type";
 import { v4 as uuid } from "uuid";
 
 export const eventWithFormTemplate = (): EventWithForm => ({

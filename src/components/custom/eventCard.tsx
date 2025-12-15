@@ -1,7 +1,7 @@
 import { Card } from "@components/ui/card";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
-import { Event } from "prisma/generated/zod";
+import { Event } from "@type";
 import { useState } from "react";
 
 export function EventCard({

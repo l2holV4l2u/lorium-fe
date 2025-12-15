@@ -1,4 +1,4 @@
-import { Event, FormField, ResField, User } from "@zod";
+import { Event, FormField, ResField, User } from "@type";
 
 export function validateGenInfo(event: Event) {
   return (
