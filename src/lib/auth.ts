@@ -45,15 +45,12 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
 
   callbacks: {
     async signIn({ user, account }: any) {
       if (account?.provider === "google") {
         try {
-          console.log("Hi from auth!");
           await trpcServer.auth.findOrCreateUser.mutate({
             email: user.email!,
             name: user.name,

@@ -8,7 +8,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FormField } from "@type";
+import { FormField } from "@lorium/prisma-zod";
 import { GripVertical, Trash2 } from "lucide-react";
 
 // Sortable Form Element for Editor mode
@@ -48,10 +48,10 @@ const SortableFormElement = ({
         <div className="w-full border-t border-dashed border-gray-300 my-4" />
       )}
       <div
-        className="bg-white border-2 border-transparent hover:border-blue-400 rounded-lg p-4 cursor-pointer transition-colors"
+        className="bg-white border-2 border-transparent hover:border-blue-400 rounded-lg px-2 py-4 cursor-pointer transition-colors"
         onClick={() => setFocus(index)}
       >
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-4">
           <button
             {...attributes}
             {...listeners}
@@ -71,9 +71,9 @@ const SortableFormElement = ({
               e.stopPropagation();
               onDelete(field.id);
             }}
-            className="p-1 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            className="cursor-pointer p-2 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <Trash2 size={18} className="text-red-500" />
+            <Trash2 size={16} className="text-red-500" />
           </button>
         </div>
       </div>
@@ -87,20 +87,18 @@ export function FormViewer({ formFields }: { formFields: FormField[] }) {
     <div className="w-full h-full max-h-[75vh]">
       <div className="bg-white rounded-lg shadow-sm overflow-auto p-4 h-full">
         <div className="flex justify-center">
-          <div className="flex flex-col w-full gap-4">
-            {formFields.map((field, index) => (
-              <div key={field.id}>
-                {index !== 0 && formFields.length > index && (
-                  <div className="w-full border-dashed border px-4 my-4" />
-                )}
-                <FormElementView
-                  type={field.type}
-                  index={index}
-                  formFields={formFields}
-                />
-              </div>
-            ))}
-          </div>
+          {formFields.map((field, index) => (
+            <div key={field.id}>
+              {index !== 0 && formFields.length > index && (
+                <div className="w-full border-dashed border px-4 my-4" />
+              )}
+              <FormElementView
+                type={field.type}
+                index={index}
+                formFields={formFields}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -139,50 +137,46 @@ export function FormEditor({
   };
 
   return (
-    <div ref={setNodeRef} className="w-full h-full max-h-[75vh]">
+    <div ref={setNodeRef} className="w-full h-full max-h-[60vh]">
       <div className="bg-white rounded-lg shadow-sm overflow-auto p-4 h-full">
         <DndContext
           onDragEnd={handleDragEnd}
           modifiers={[restrictToVerticalAxis]}
         >
-          <div className="flex justify-center">
-            <div className="flex flex-col w-full gap-4">
-              <SortableContext
-                items={formFields.map((f) => f.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {formFields.map((field, index) => (
-                  <SortableFormElement
-                    key={field.id}
-                    field={field}
-                    index={index}
-                    formFields={formFields}
-                    setFocus={setFocus}
-                    onDelete={handleDelete}
-                    showDivider={index !== 0 && formFields.length > index}
-                  />
-                ))}
-              </SortableContext>
+          <SortableContext
+            items={formFields.map((f) => f.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {formFields.map((field, index) => (
+              <SortableFormElement
+                key={field.id}
+                field={field}
+                index={index}
+                formFields={formFields}
+                setFocus={setFocus}
+                onDelete={handleDelete}
+                showDivider={index !== 0 && formFields.length > index}
+              />
+            ))}
+          </SortableContext>
 
-              {isOver && (
-                <div className="p-4">
-                  <div className="w-full h-16 bg-blue-100 border-blue-400 rounded-lg border-2 border-dashed flex items-center justify-center">
-                    <span className="text-blue-600 font-medium">
-                      วางที่นี่เพื่อเพิ่มฟิลด์
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {formFields.length === 0 && !isOver && (
-                <div className="p-12 text-center border-2 border-dashed rounded-lg">
-                  <p className="text-gray-400">
-                    ลากฟิลด์มาที่นี่เพื่อเริ่มสร้างแบบฟอร์ม
-                  </p>
-                </div>
-              )}
+          {isOver && (
+            <div className="p-4">
+              <div className="w-full h-16 bg-blue-100 border-blue-400 rounded-lg border-2 border-dashed flex items-center justify-center">
+                <span className="text-blue-600 font-medium">
+                  วางที่นี่เพื่อเพิ่มฟิลด์
+                </span>
+              </div>
             </div>
-          </div>
+          )}
+
+          {formFields.length === 0 && !isOver && (
+            <div className="p-12 text-center border-2 border-dashed rounded-lg">
+              <p className="text-gray-400">
+                ลากฟิลด์มาที่นี่เพื่อเริ่มสร้างแบบฟอร์ม
+              </p>
+            </div>
+          )}
         </DndContext>
       </div>
     </div>

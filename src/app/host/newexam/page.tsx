@@ -11,30 +11,54 @@ import { toast } from "sonner";
 import { validateFormFields, validateGenInfo } from "@lib/utils/validator";
 import { GoDot, GoDotFill } from "react-icons/go";
 import { PageLayout } from "@components/layout/pageLayout";
+import { trpc } from "@lib/trpc";
+import { useHostSession } from "@lib/useSession";
+import { LoadPage } from "@components/layout/loadPage";
 
 export default function NewEventClient() {
-  const [event, setEvent] = useState(eventWithFormTemplate());
+  const createEventMutation = trpc.event.createEvent.useMutation();
+  const [data, setData] = useState(eventWithFormTemplate());
+  const [host] = useHostSession();
   const steps = ["ข้อมูลทั่วไป", "สร้างแบบฟอร์ม"];
   const [nav, setNav] = useState(1);
   const router = useRouter();
 
+  if (!host) {
+    return <LoadPage />;
+  }
+
   const handleNext = async () => {
     switch (nav) {
       case 1:
-        if (!validateGenInfo(event)) {
+        if (!validateGenInfo(data.event)) {
           toast.error("กรุณากรอกข้อมูลทั่วไปให้ครบถ้วน");
           return;
         }
         break;
       case 2:
-        if (!validateFormFields(event.formFields)) {
+        if (!validateFormFields(data.formFields)) {
           toast.error(
             "แบบฟอร์มต้องมีอย่างน้อยหนึ่งฟิลด์ และต้องกรอกให้ครบถ้วน"
           );
           return;
         }
-        //await createEvent(user, event, form, formFields);
-        router.push("/host");
+        console.log(data);
+        try {
+          const response = await createEventMutation.mutateAsync({
+            userId: host.id,
+            event: data.event,
+            formFields: data.formFields,
+          });
+          if (response.success) {
+            toast.success("สร้างการสอบสำเร็จ");
+            router.push("/host");
+          } else {
+            toast.error("สร้างการสอบล้มเหลว");
+          }
+        } catch (error) {
+          toast.error("เกิดข้อผิดพลาดในการสร้างการสอบ");
+          console.error(error);
+        }
         return;
     }
     setNav(nav + 1);
@@ -82,21 +106,18 @@ export default function NewEventClient() {
           ))}
         </div>
 
-        {/*
-        {nav == 1 && <GeneralInfo event={event} setEvent={setEvent} />}
-        {nav == 2 && (
-          <FormBuilder
-            formFields={event.formFields}
-            setFormFields={(fields) =>
-              setEvent({ ...event, formFields: fields })
-            }
+        {nav == 1 && (
+          <GeneralInfo
+            event={data.event}
+            setEvent={(e) => setData({ ...data, event: e })}
           />
         )}
-        */}
-        <FormBuilder
-          formFields={event.formFields}
-          setFormFields={(fields) => setEvent({ ...event, formFields: fields })}
-        />
+        {nav == 2 && (
+          <FormBuilder
+            formFields={data.formFields}
+            setFormFields={(f) => setData({ ...data, formFields: f })}
+          />
+        )}
 
         {/* Navigation */}
         <div className="flex gap-4 font-semibold">
@@ -105,12 +126,18 @@ export default function NewEventClient() {
               onClick={() => setNav(nav - 1)}
               variant="outline"
               size="full"
+              className="flex-1"
             >
               <LucideArrowLeft size={16} /> ย้อนกลับ
             </Button>
           )}
-          <Button onClick={handleNext} variant={"highlight"} size="full">
-            {nav === 2 ? "ส่ง" : "ถัดไป"}
+          <Button
+            onClick={handleNext}
+            variant={"highlight"}
+            size="full"
+            className="flex-1"
+          >
+            {nav == 2 ? "ส่ง" : "ถัดไป"}
             <LucideArrowRight size={16} />
           </Button>
         </div>

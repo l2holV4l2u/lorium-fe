@@ -1,4 +1,4 @@
-import { User } from "@type";
+import { User } from "@lorium/prisma-zod";
 
 export interface HostUser extends User {
   role: "HOST";

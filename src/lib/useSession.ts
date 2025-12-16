@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { User } from "@type";
+import { User } from "@lorium/prisma-zod";
 import { HostUser, RegistrantUser } from "@type/user";
 
 // Base user session hook

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { DndContext, DragEndEvent, DragOverEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { v4 as uuid } from "uuid";
-import { FormField } from "@type";
 import { FormEditor } from "./formRender";
 import FormSidebar from "./formSidebar";
+import { FormField } from "@lorium/prisma-zod";
 
 export function FormBuilder({
   formFields,
@@ -75,8 +75,8 @@ export function FormBuilder({
         handleDragEnd(e);
       }}
     >
-      <div className="grid grid-cols-10 gap-2 w-full min-h-96">
-        <div className="col-span-6">
+      <div className="grid grid-cols-10 gap-2 w-full">
+        <div className="col-span-7">
           <SortableContext items={formFields.map((item) => item.id)}>
             <FormEditor
               formFields={formFields}

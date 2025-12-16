@@ -1,9 +1,10 @@
 import { EventWithForm } from "@type/event";
-import { Event, FormField } from "@type";
+import { Event, FormField } from "@lorium/prisma-zod";
 import { v4 as uuid } from "uuid";
+import { FieldType } from "@type/enum";
 
 export const eventWithFormTemplate = (): EventWithForm => ({
-  ...eventTemplate(),
+  event: eventTemplate(),
   formFields: [],
 });
 
@@ -27,7 +28,7 @@ export const eventTemplate = (): Event => ({
 export const formFieldTemplate = (
   formId: string,
   fieldOrder: number,
-  type: string = "shortanswer"
+  type: FieldType = "SHORT_TEXT"
 ): FormField => ({
   id: uuid(),
   formId: formId,

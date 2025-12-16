@@ -1,13 +1,15 @@
 import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
 import { DndContext, DragOverEvent } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { arrayMove, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { FaPlus, FaXmark } from "react-icons/fa6";
 import { CSS } from "@dnd-kit/utilities";
 import { RiDraggable } from "react-icons/ri";
-import { FormField } from "@type";
 import { nonInputFields } from "@lib/utils/const";
 import { Toggle } from "@components/custom/toggle";
+import { FormField } from "@lorium/prisma-zod";
+import { FieldTypeEnum } from "@type/enum";
 
 function DraggableChoice({
   choice,
@@ -26,7 +28,7 @@ function DraggableChoice({
     useSortable({ id: `choice-${subindex}` });
   return (
     <div
-      className="flex items-center w-full gap-2"
+      className="flex items-center justify-center w-full gap-2"
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(transform),
@@ -46,12 +48,7 @@ function DraggableChoice({
           updatedFields[index].choices[subindex] = e.target.value;
           setFormFields(updatedFields);
         }}
-        placeholder={
-          `${
-            formFields[index].type == "Multiple Choice" ? "Choice" : "Option"
-          } ` +
-          (subindex + 1)
-        }
+        placeholder={"ตัวเลือก " + (subindex + 1)}
       />
       <FaXmark
         size={14}
@@ -94,15 +91,6 @@ export default function ElementProperty({
     };
   }
 
-  function InputProp(field: string) {
-    return {
-      data: (formFields[index] as any)[field.toLowerCase()] || "",
-      setData: updateData(field.toLowerCase()),
-      label: field,
-      placeholder: field,
-    };
-  }
-
   function handleDragEnd(event: DragOverEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -116,51 +104,85 @@ export default function ElementProperty({
   }
 
   return (
-    <>
-      {!nonInputFields.includes(type) && <Toggle {...InputProp("Required")} />}
-      <Input {...InputProp("Header")} />
-      {type == "Section" ? (
-        <Input {...InputProp("Description")} />
-      ) : type == "Short Answer" || type == "Long Answer" ? (
-        <Input {...InputProp("Placeholder")} />
-      ) : (
-        (type === "Multiple Choice" || type === "Checkbox") && (
-          <>
-            <div className="flex justify-between">
-              <div className="font-semibold text-gray-800">
-                {type == "Multiple Choice" ? "Choices" : "Options"}
-              </div>
-              <FaPlus
-                className="cursor-pointer"
-                size={14}
-                onClick={() => {
-                  var updatedFields = [...formFields];
-                  updatedFields[index].choices.push("");
-                  setFormFields(updatedFields);
-                }}
-              />
-            </div>
-            <DndContext
-              onDragEnd={handleDragEnd}
-              modifiers={[restrictToVerticalAxis]}
-            >
-              <SortableContext
-                items={formFields[index].choices.map((_, i) => `choice-${i}`)}
-              >
-                {formFields[index].choices.map((choice, subindex) => (
-                  <DraggableChoice
-                    choice={choice}
-                    index={index}
-                    subindex={subindex}
-                    formFields={formFields}
-                    setFormFields={setFormFields}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-          </>
-        )
+    <div className="space-y-4">
+      {!nonInputFields.includes(type) && (
+        <Toggle
+          label="จำเป็น"
+          data={(formFields[index] as any)["required"]}
+          setData={updateData("required")}
+        />
       )}
-    </>
+
+      <div className="space-y-1">
+        <Label htmlFor="header-input">
+          {type == FieldTypeEnum.SECTION ? "หัวข้อ" : "คำถาม"}
+        </Label>
+        <Input
+          id="header-input"
+          value={(formFields[index] as any).header || ""}
+          onChange={(e) => updateData("header")(e.target.value)}
+          placeholder={type == FieldTypeEnum.SECTION ? "หัวข้อ" : "คำถาม"}
+        />
+      </div>
+
+      {type === FieldTypeEnum.SECTION ? (
+        <div className="space-y-1">
+          <Label htmlFor="description-input">คำบรรยาย</Label>
+          <Input
+            id="description-input"
+            value={(formFields[index] as any).description || ""}
+            onChange={(e) => updateData("description")(e.target.value)}
+            placeholder="คำบรรยาย"
+          />
+        </div>
+      ) : type === FieldTypeEnum.SHORT_TEXT ||
+        type === FieldTypeEnum.LONG_TEXT ? (
+        <div className="space-y-1">
+          <Label htmlFor="text-input">Placeholder</Label>
+          <Input
+            id="placeholder-input"
+            value={(formFields[index] as any).placeholder || ""}
+            onChange={(e) => updateData("placeholder")(e.target.value)}
+            placeholder="Placeholder"
+          />
+        </div>
+      ) : null}
+
+      {(type === FieldTypeEnum.CHOICE || type === FieldTypeEnum.CHECKBOX) && (
+        <>
+          <div className="flex justify-between items-center mb-2">
+            <Label>ตัวเลือก</Label>
+            <FaPlus
+              className="cursor-pointer"
+              size={14}
+              onClick={() => {
+                const updatedFields = [...formFields];
+                updatedFields[index].choices.push("");
+                setFormFields(updatedFields);
+              }}
+            />
+          </div>
+          <DndContext
+            onDragEnd={handleDragEnd}
+            modifiers={[restrictToVerticalAxis]}
+          >
+            <SortableContext
+              items={formFields[index].choices.map((_, i) => `choice-${i}`)}
+            >
+              {formFields[index].choices.map((choice, subindex) => (
+                <DraggableChoice
+                  key={subindex}
+                  choice={choice}
+                  index={index}
+                  subindex={subindex}
+                  formFields={formFields}
+                  setFormFields={setFormFields}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+        </>
+      )}
+    </div>
   );
 }

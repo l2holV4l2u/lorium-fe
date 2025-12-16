@@ -13,7 +13,7 @@ export function Toggle({
       <div
         onClick={() => setData(!data)}
         className={`w-12 h-6 flex items-center ${
-          data ? "bg-primary-400" : "bg-gray-300"
+          data ? "bg-primary-300" : "bg-gray-300"
         } rounded-full p-1 cursor-pointer transition-colors duration-200`}
       >
         <div

@@ -1,3 +1,3 @@
-import { Event, FormField } from "@type";
+import { Event, FormField } from "@lorium/prisma-zod";
 
-export type EventWithForm = Event & { formFields: FormField[] };
+export type EventWithForm = { event: Event } & { formFields: FormField[] };

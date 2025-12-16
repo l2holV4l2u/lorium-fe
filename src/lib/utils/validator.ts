@@ -1,4 +1,5 @@
-import { Event, FormField, ResField, User } from "@type";
+import { Event, FormField, ResField, User } from "@lorium/prisma-zod";
+import { FieldTypeEnum } from "@type/enum";
 
 export function validateGenInfo(event: Event) {
   return (
@@ -18,14 +19,14 @@ export function validateFormFields(formFields: FormField[]) {
 export function isFormFieldValid(field: FormField) {
   if (!field.header) return false;
   switch (field.type) {
-    case "Section":
+    case FieldTypeEnum.SECTION:
       if (!field.description) return false;
       break;
-    case "Multiple Choice":
+    case FieldTypeEnum.CHOICE:
       if (!field.choices || field.choices.some((choice) => choice === ""))
         return false;
       break;
-    case "Checkbox":
+    case FieldTypeEnum.CHECKBOX:
       if (!field.choices || field.choices.some((choice) => choice === ""))
         return false;
       break;
@@ -47,15 +48,15 @@ export function validateResponse(
     if (formField == undefined) return true;
     const type = formField.type;
     if (!formField.required) return true;
-    if (type == "Short Answer" || type == "Long Answer") {
+    if (type == FieldTypeEnum.SHORT_TEXT || type == FieldTypeEnum.LONG_TEXT) {
       return field.textField != null && field.textField != "";
-    } else if (type == "Multiple Choice") {
+    } else if (type == FieldTypeEnum.CHOICE) {
       return field.selectField != null && field.selectField != -1;
-    } else if (type == "Checkbox") {
+    } else if (type == FieldTypeEnum.CHECKBOX) {
       return formField.choices.length != 0;
-    } else if (type == "File Upload") {
+    } else if (type == FieldTypeEnum.FILE) {
       return field.fileField != null;
-    } else if (type == "Date Field") {
+    } else if (type == FieldTypeEnum.DATE) {
       return field.dateField != null;
     }
     return true;

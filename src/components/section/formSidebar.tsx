@@ -3,34 +3,14 @@
 import { DragOverlay, useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  LucideAlignCenter,
-  LucideCalendar,
-  LucideLayoutTemplate,
-  LucideList,
-  LucideSquareCheckBig,
-  LucideText,
-  LucideUpload,
-} from "lucide-react";
-import { JSX, useEffect, useState } from "react";
-import { FieldTypes } from "@lib/utils/const";
+import { fieldTypeNameMap, iconMap } from "@lib/utils/const";
 import ElementProperty from "@components/layout/elementProperty";
-import { FormField } from "@type";
+import { FormField } from "@lorium/prisma-zod";
+import { FieldTypeEnum } from "@type/enum";
 
-const iconProps = { size: 24, strokeWidth: 2, color: "black" };
-const iconMap: Record<string, JSX.Element> = {
-  section: <LucideLayoutTemplate {...iconProps} />,
-  shortanswer: <LucideText {...iconProps} />,
-  longanswer: <LucideAlignCenter {...iconProps} />,
-  multiplechoice: <LucideList {...iconProps} />,
-  checkbox: <LucideSquareCheckBig {...iconProps} />,
-  fileupload: <LucideUpload {...iconProps} />,
-  datefield: <LucideCalendar {...iconProps} />,
-};
-
-function DraggableElement({ childTitle }: { childTitle: string }) {
+function DraggableElement({ title }: { title: string }) {
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: childTitle,
+    id: title,
   });
   return (
     <Card
@@ -39,8 +19,7 @@ function DraggableElement({ childTitle }: { childTitle: string }) {
       {...listeners}
       {...attributes}
     >
-      {iconMap[childTitle.toLowerCase().replace(/\s+/g, "")]}
-      {childTitle}
+      {iconMap[title]} {fieldTypeNameMap[title]}
     </Card>
   );
 }
@@ -60,26 +39,17 @@ export default function FormSidebar({
   formFields: FormField[];
   setFormFields: (fields: FormField[]) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"element" | "property">("element");
-
-  useEffect(() => {
-    if (focus != null) setActiveTab("property");
-  }, [focus]);
-
   return (
-    <Card className="flex flex-col w-full h-full col-span-4 p-4 gap-4 overflow-auto">
-      <Tabs
-        value={activeTab}
-        onValueChange={(val) => setActiveTab(val as "element" | "property")}
-      >
+    <Card className="flex flex-col w-full h-full col-span-3 p-4 gap-4 overflow-auto">
+      <Tabs defaultValue="element">
         <TabsList className="w-full">
-          <TabsTrigger value="element">องค์ประกอบ</TabsTrigger>
-          <TabsTrigger value="property">คุณสมบัติ</TabsTrigger>
+          <TabsTrigger value="element">คำถาม</TabsTrigger>
+          <TabsTrigger value="property">รายละเอียด</TabsTrigger>
         </TabsList>
         <TabsContent value="element">
           <div className="w-full grid grid-cols-2 col-span-2 gap-2">
-            {FieldTypes.map((type) => (
-              <DraggableElement childTitle={type} key={type} />
+            {Object.values(FieldTypeEnum).map((type) => (
+              <DraggableElement title={type} key={type} />
             ))}
           </div>
         </TabsContent>
@@ -98,7 +68,7 @@ export default function FormSidebar({
       </Tabs>
       <DragOverlay>
         {isDragging && activeID && (
-          <DraggableElement key={activeID} childTitle={activeID} />
+          <DraggableElement key={activeID} title={activeID} />
         )}
       </DragOverlay>
     </Card>

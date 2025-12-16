@@ -12,20 +12,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { EventWithForm } from "@type/event";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
+import { Event } from "@lorium/prisma-zod";
 
 export function GeneralInfo({
   event,
   setEvent,
 }: {
-  event: EventWithForm;
-  setEvent: Dispatch<SetStateAction<EventWithForm>>;
+  event: Event;
+  setEvent: (e: Event) => void;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col gap-4 w-xl">
+    <div className="flex flex-col gap-4 w-full">
       {/* ชื่ออีเวนต์ */}
       <div className="flex flex-col gap-1 w-full">
         <Label>ชื่อการสอบ</Label>
