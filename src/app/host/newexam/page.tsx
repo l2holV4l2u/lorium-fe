@@ -23,9 +23,7 @@ export default function NewEventClient() {
   const [nav, setNav] = useState(1);
   const router = useRouter();
 
-  if (!host) {
-    return <LoadPage />;
-  }
+  if (!host) return <LoadPage />;
 
   const handleNext = async () => {
     switch (nav) {

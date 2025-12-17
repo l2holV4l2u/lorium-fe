@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useParams } from "next/navigation";
 import {
   Home,
   FileText,
@@ -15,69 +15,60 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { trpc } from "@lib/trpc";
+import Overview from "./tabs/overview";
+import { useEffect, useState } from "react";
+import { Event } from "@lorium/prisma-zod";
 
-const VerticalTabs = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+export default function ExamDetails() {
+  const params = useParams();
+  const eventId = params.id as string;
+
+  const [event, setEvent] = useState<Event | null>(null);
+
+  const { data, isLoading, error } = trpc.event.getById.useQuery(eventId, {
+    enabled: !!eventId,
+  });
+
+  useEffect(() => {
+    if (data) setEvent(data);
+  }, [data]);
 
   const tabs = [
-    { id: "overview", label: "ภาพรวม", icon: Home },
-    { id: "form", label: "แบบฟอร์ม", icon: FileText },
-    { id: "response", label: "คำตอบ", icon: MessageSquare },
-    { id: "result", label: "ผลลัพธ์", icon: BarChart3 },
-    { id: "setting", label: "การตั้งค่า", icon: Settings },
+    {
+      id: "overview",
+      label: "ภาพรวม",
+      icon: Home,
+      element: event && <Overview event={event} setEvent={setEvent} />,
+    },
+    {
+      id: "form",
+      label: "แบบฟอร์ม",
+      icon: FileText,
+    },
+    {
+      id: "response",
+      label: "คำตอบ",
+      icon: MessageSquare,
+    },
+    {
+      id: "setting",
+      label: "การตั้งค่า",
+      icon: Settings,
+    },
   ];
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "overview":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">ภาพรวม</h2>
-            <p className="text-gray-600">เนื้อหาภาพรวมของอีเวนต์</p>
-          </div>
-        );
-      case "form":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">แบบฟอร์ม</h2>
-            <p className="text-gray-600">สร้างและจัดการแบบฟอร์มลงทะเบียน</p>
-          </div>
-        );
-      case "response":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">คำตอบ</h2>
-            <p className="text-gray-600">ดูคำตอบจากผู้เข้าร่วม</p>
-          </div>
-        );
-      case "result":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">ผลลัพธ์</h2>
-            <p className="text-gray-600">ตารางผลลัพธ์และสถิติ</p>
-          </div>
-        );
-      case "setting":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">การตั้งค่า</h2>
-            <p className="text-gray-600">จัดการการตั้งค่าอีเวนต์</p>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="h-screen bg-gray-50 p-8">
+      <div className="max-w-8xl h-full flex flex-col mx-auto">
         {/* Breadcrumb */}
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/host">อีเวนต์ที่จัด</BreadcrumbLink>
+              <BreadcrumbLink href="/host">การสอบทั้งหมด</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -88,42 +79,53 @@ const VerticalTabs = () => {
 
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">จัดการอีเวนต์</h1>
-          <p className="text-gray-600 mt-2">จัดการและติดตามอีเวนต์ของคุณ</p>
+          <p className="text-gray-600 mt-2">
+            จัดการและติดตามอีเวนต์ของคุณ {eventId && `(ID: ${eventId})`}
+          </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex min-h-[600px]">
-          {/* Vertical Tab List */}
-          <div className="w-64 border-r border-gray-200 p-4">
-            <nav className="space-y-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors
-                      ${
-                        activeTab === tab.id
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }
-                    `}
+        <Card className="overflow-hidden flex-1 py-0">
+          <Tabs defaultValue="overview" className="h-full">
+            <div className="flex h-full">
+              {/* Vertical Tab List - Full Height */}
+              <div className="border-r">
+                <TabsList className="flex flex-col justify-start items-stretch h-fit w-64 bg-transparent p-4 rounded-none space-y-2">
+                  {tabs.map((t) => {
+                    const Icon = t.icon;
+                    return (
+                      <TabsTrigger
+                        key={t.id}
+                        value={t.id}
+                        className="flex-1 w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{t.label}</span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+              </div>
+
+              {/* Content Area - Full Height */}
+              <div className="flex-1 overflow-auto">
+                {tabs.map((t) => (
+                  <TabsContent
+                    key={t.id}
+                    value={t.id}
+                    className="h-full m-0 p-6 data-[state=inactive]:hidden"
                   >
-                    <Icon className="w-5 h-5" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Content Area */}
-          <div className="flex-1">{renderContent()}</div>
-        </div>
+                    <div className="h-full flex flex-col">
+                      <CardContent className="flex-1 p-0">
+                        {t.element}
+                      </CardContent>
+                    </div>
+                  </TabsContent>
+                ))}
+              </div>
+            </div>
+          </Tabs>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default VerticalTabs;
+}
