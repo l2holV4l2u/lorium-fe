@@ -23,19 +23,16 @@ export function FormBuilder({
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event;
 
-    // Check if we're over the drop area
     if (over?.id === "FormElementDropArea") {
       setIsOver(true);
     } else {
       setIsOver(false);
     }
 
-    // Handle reordering within the form
     if (over && active.id !== over.id) {
       const activeIndex = formFields.findIndex((item) => item.id === active.id);
       const overIndex = formFields.findIndex((item) => item.id === over.id);
 
-      // Only reorder if both items exist in formFields
       if (activeIndex !== -1 && overIndex !== -1) {
         setFormFields(arrayMove([...formFields], activeIndex, overIndex));
       }
@@ -75,8 +72,8 @@ export function FormBuilder({
         handleDragEnd(e);
       }}
     >
-      <div className="grid grid-cols-10 gap-2 w-full">
-        <div className="col-span-7">
+      <div className="grid grid-cols-10 gap-2 w-full h-full">
+        <div className="col-span-7 flex flex-col min-h-0">
           <SortableContext items={formFields.map((item) => item.id)}>
             <FormEditor
               formFields={formFields}

@@ -1,4 +1,5 @@
 import { FormElementView } from "@components/layout/formElementView";
+import { Card } from "@components/ui/card";
 import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
@@ -36,9 +37,11 @@ const SortableFormElement = ({
     isDragging,
   } = useSortable({ id: field.id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
+    position: isDragging ? "relative" : undefined,
+    zIndex: isDragging ? 999 : undefined,
     opacity: isDragging ? 0.5 : 1,
   };
 
@@ -84,9 +87,9 @@ const SortableFormElement = ({
 // VIEWER MODE - Read-only display
 export function FormViewer({ formFields }: { formFields: FormField[] }) {
   return (
-    <div className="w-full h-full max-h-[75vh]">
-      <div className="bg-white rounded-lg shadow-sm overflow-auto p-4 h-full">
-        <div className="flex justify-center">
+    <div className="max-w-xl h-full justify-self-center w-full">
+      <div className="bg-white overflow-auto p-4 h-full">
+        <div className="flex flex-col justify-center">
           {formFields.map((field, index) => (
             <div key={field.id}>
               {index !== 0 && formFields.length > index && (
@@ -137,16 +140,17 @@ export function FormEditor({
   };
 
   return (
-    <div ref={setNodeRef} className="w-full h-full max-h-[60vh]">
-      <div className="bg-white rounded-lg shadow-sm overflow-auto p-4 h-full">
-        <DndContext
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis]}
+    // Card fills full height and uses flex-col layout for scrolling inside
+    <Card ref={setNodeRef} className="flex flex-col p-4 h-full overflow-hidden">
+      <DndContext
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <SortableContext
+          items={formFields.map((f) => f.id)}
+          strategy={verticalListSortingStrategy}
         >
-          <SortableContext
-            items={formFields.map((f) => f.id)}
-            strategy={verticalListSortingStrategy}
-          >
+          <div className="flex flex-col overflow-auto flex-1">
             {formFields.map((field, index) => (
               <SortableFormElement
                 key={field.id}
@@ -158,28 +162,27 @@ export function FormEditor({
                 showDivider={index !== 0 && formFields.length > index}
               />
             ))}
-          </SortableContext>
-
-          {isOver && (
-            <div className="p-4">
-              <div className="w-full h-16 bg-blue-100 border-blue-400 rounded-lg border-2 border-dashed flex items-center justify-center">
-                <span className="text-blue-600 font-medium">
-                  วางที่นี่เพื่อเพิ่มฟิลด์
-                </span>
+            {isOver && (
+              <div className="p-4">
+                <div className="w-full h-16 bg-blue-100 border-blue-400 rounded-lg border-2 border-dashed flex items-center justify-center">
+                  <span className="text-blue-600 font-medium">
+                    วางที่นี่เพื่อเพิ่มฟิลด์
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {formFields.length === 0 && !isOver && (
-            <div className="p-12 text-center border-2 border-dashed rounded-lg">
-              <p className="text-gray-400">
-                ลากฟิลด์มาที่นี่เพื่อเริ่มสร้างแบบฟอร์ม
-              </p>
-            </div>
-          )}
-        </DndContext>
-      </div>
-    </div>
+            {formFields.length === 0 && !isOver && (
+              <div className="p-12 text-center border-2 border-dashed rounded-lg">
+                <p className="text-gray-400">
+                  ลากฟิลด์มาที่นี่เพื่อเริ่มสร้างแบบฟอร์ม
+                </p>
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </Card>
   );
 }
 

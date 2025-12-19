@@ -36,7 +36,13 @@ export default function RootLayout({
         className={`${notoSansThai.className} ${geistSans.variable} ${geistMono.variable} ${notoSansThai.variable} antialiased`}
       >
         <Provider>
-          <Toaster richColors position="top-right" />
+          <Toaster
+            richColors
+            position="top-right"
+            toastOptions={{
+              className: notoSansThai.className,
+            }}
+          />
           {children}
         </Provider>
       </body>
